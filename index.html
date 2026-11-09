@@ -91,7 +91,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Botón normal (funciones científicas / números) */
         .btn-sci {
             background: rgba(255, 255, 255, 0.07);
             color: #ff4444;
@@ -104,7 +103,6 @@
             color: #ff1111;
         }
 
-        /* Botón número */
         .btn-num {
             background: rgba(255, 255, 255, 0.1);
             color: #ff3333;
@@ -116,7 +114,6 @@
             transform: scale(1.05);
         }
 
-        /* Botón operador */
         .btn-op {
             background: rgba(180, 0, 0, 0.3);
             color: #ff1111;
@@ -129,7 +126,6 @@
             transform: scale(1.05);
         }
 
-        /* Botón igual */
         .btn-equal {
             background: linear-gradient(135deg, #cc0000, #ff2222);
             color: #fff;
@@ -144,7 +140,6 @@
             transform: scale(1.07);
         }
 
-        /* Botón limpiar */
         .btn-clear {
             background: rgba(100, 0, 0, 0.5);
             color: #ff6666;
@@ -157,7 +152,6 @@
             transform: scale(1.05);
         }
 
-        /* Botón que ocupa 2 columnas */
         .span2 { grid-column: span 2; }
 
         button:active {
@@ -231,14 +225,17 @@
             min-height: 18px;
         }
 
-        /* Inputs de la calculadora básica con selector */
+        /* ── CORRECCIÓN: inputs de la sección dos números ── */
         .inputs-row {
             display: flex;
             gap: 8px;
+            width: 100%;        /* ← AÑADIDO */
+            overflow: hidden;   /* ← AÑADIDO */
         }
 
         .inputs-row input {
             flex: 1;
+            min-width: 0;       /* ← AÑADIDO */
             padding: 10px 12px;
             border: 1px solid rgba(255, 50, 50, 0.35);
             border-radius: 10px;
@@ -469,7 +466,6 @@
 
     function calculate() {
         try {
-            // eslint-disable-next-line no-eval
             let result = eval(expr.replace(/factorial/g, 'factorial'));
             result = parseFloat(result.toFixed(10));
             document.getElementById('display').textContent = result;
