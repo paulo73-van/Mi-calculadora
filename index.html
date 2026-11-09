@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Científica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #ffffff, #555555, #000000);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calculator {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(0,0,0,0.6));
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 60, 60, 0.3);
+            border-radius: 24px;
+            padding: 30px 28px;
+            width: 420px;
+            box-shadow:
+                0 0 40px rgba(200, 0, 0, 0.2),
+                0 25px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: #ff2222;
+            font-size: 1.6rem;
+            margin-bottom: 18px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(255, 50, 50, 0.6);
+        }
+
+        /* ── Pantalla ── */
+        .screen {
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 50, 50, 0.4);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .screen .expression {
+            color: rgba(255, 100, 100, 0.6);
+            font-size: 0.85rem;
+            min-height: 18px;
+            word-break: break-all;
+            text-align: right;
+        }
+
+        .screen .display {
+            color: #ff2222;
+            font-size: 2rem;
+            font-weight: bold;
+            word-break: break-all;
+            text-align: right;
+            text-shadow: 0 0 10px rgba(255, 50, 50, 0.5);
+        }
+
+        /* ── Grid de botones ── */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 14px 6px;
+            border: 1px solid rgba(255, 50, 50, 0.35);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            letter-spacing: 0.5px;
+        }
+
+        /* Botón normal (funciones científicas / números) */
+        .btn-sci {
+            background: rgba(255, 255, 255, 0.07);
+            color: #ff4444;
+        }
+
+        .btn-sci:hover {
+            background: rgba(255, 50, 50, 0.2);
+            box-shadow: 0 0 12px rgba(255, 50, 50, 0.4);
+            transform: scale(1.05);
+            color: #ff1111;
+        }
+
+        /* Botón número */
+        .btn-num {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ff3333;
+        }
+
+        .btn-num:hover {
+            background: rgba(255, 50, 50, 0.25);
+            box-shadow: 0 0 12px rgba(255, 50, 50, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Botón operador */
+        .btn-op {
+            background: rgba(180, 0, 0, 0.3);
+            color: #ff1111;
+            border-color: rgba(255, 30, 30, 0.5);
+        }
+
+        .btn-op:hover {
+            background: rgba(220, 0, 0, 0.5);
+            box-shadow: 0 0 16px rgba(255, 0, 0, 0.5);
+            transform: scale(1.05);
+        }
+
+        /* Botón igual */
+        .btn-equal {
+            background: linear-gradient(135deg, #cc0000, #ff2222);
+            color: #fff;
+            border: none;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 18px rgba(200, 0, 0, 0.5);
+        }
+
+        .btn-equal:hover {
+            background: linear-gradient(135deg, #ff2222, #ff5555);
+            box-shadow: 0 4px 28px rgba(255, 0, 0, 0.7);
+            transform: scale(1.07);
+        }
+
+        /* Botón limpiar */
+        .btn-clear {
+            background: rgba(100, 0, 0, 0.5);
+            color: #ff6666;
+            border-color: rgba(255, 50, 50, 0.5);
+        }
+
+        .btn-clear:hover {
+            background: rgba(180, 0, 0, 0.6);
+            box-shadow: 0 0 16px rgba(255, 0, 0, 0.5);
+            transform: scale(1.05);
+        }
+
+        /* Botón que ocupa 2 columnas */
+        .span2 { grid-column: span 2; }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        /* ── Selector de operación básica ── */
+        .basic-op {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .basic-op select {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid rgba(255, 50, 50, 0.4);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #ff3333;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23ff3333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+
+        .basic-op select option {
+            background: #1a0000;
+            color: #ff4444;
+        }
+
+        /* ── Resultado del selector ── */
+        .result-box {
+            width: 100%;
+            padding: 12px 18px;
+            border: 1px solid rgba(255, 50, 50, 0.4);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #ff2222;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: center;
+            outline: none;
+            margin-top: 10px;
+            text-shadow: 0 0 8px rgba(255, 50, 50, 0.4);
+        }
+
+        .result-box::placeholder {
+            color: rgba(255, 50, 50, 0.3);
+            font-weight: normal;
+            font-size: 0.9rem;
+        }
+
+        .section-title {
+            color: rgba(255, 80, 80, 0.6);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            margin-top: 16px;
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 6px;
+            min-height: 18px;
+        }
+
+        /* Inputs de la calculadora básica con selector */
+        .inputs-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .inputs-row input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 50, 50, 0.35);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #ff3333;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .inputs-row input:focus {
+            border-color: #ff2222;
+            box-shadow: 0 0 10px rgba(255, 30, 30, 0.4);
+        }
+
+        .inputs-row input::placeholder {
+            color: rgba(255, 50, 50, 0.3);
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid rgba(255, 50, 50, 0.2);
+            margin: 18px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <h1>⬤ Calc Científica</h1>
+
+    <!-- ══════════════════════════════════
+         SECCIÓN 1 — Calculadora científica
+    ══════════════════════════════════ -->
+    <p class="section-title">▸ Calculadora científica</p>
+
+    <div class="screen">
+        <div class="expression" id="expression"></div>
+        <div class="display" id="display">0</div>
+    </div>
+
+    <div class="buttons">
+
+        <!-- Fila 1: funciones -->
+        <button class="btn-sci" onclick="calcSci('sin')">sin</button>
+        <button class="btn-sci" onclick="calcSci('cos')">cos</button>
+        <button class="btn-sci" onclick="calcSci('tan')">tan</button>
+        <button class="btn-sci" onclick="calcSci('log')">log</button>
+        <button class="btn-sci" onclick="calcSci('ln')">ln</button>
+
+        <!-- Fila 2: más funciones -->
+        <button class="btn-sci" onclick="calcSci('sqrt')">√x</button>
+        <button class="btn-sci" onclick="calcSci('cbrt')">∛x</button>
+        <button class="btn-sci" onclick="calcSci('pow2')">x²</button>
+        <button class="btn-sci" onclick="calcSci('pow3')">x³</button>
+        <button class="btn-sci" onclick="calcSci('inv')">1/x</button>
+
+        <!-- Fila 3: más funciones -->
+        <button class="btn-sci" onclick="calcSci('exp')">eˣ</button>
+        <button class="btn-sci" onclick="calcSci('abs')">|x|</button>
+        <button class="btn-sci" onclick="calcSci('fact')">x!</button>
+        <button class="btn-sci" onclick="appendToExpr('Math.PI')">π</button>
+        <button class="btn-sci" onclick="appendToExpr('Math.E')">e</button>
+
+        <!-- Fila 4: paréntesis + borrar -->
+        <button class="btn-op"  onclick="appendToExpr('(')"> ( </button>
+        <button class="btn-op"  onclick="appendToExpr(')')"> ) </button>
+        <button class="btn-op"  onclick="appendToExpr('**')">xʸ</button>
+        <button class="btn-sci" onclick="appendToExpr('%')">mod</button>
+        <button class="btn-clear" onclick="deleteLast()">⌫</button>
+
+        <!-- Fila 5: números 7 8 9 / -->
+        <button class="btn-num" onclick="appendToExpr('7')">7</button>
+        <button class="btn-num" onclick="appendToExpr('8')">8</button>
+        <button class="btn-num" onclick="appendToExpr('9')">9</button>
+        <button class="btn-op"  onclick="appendToExpr('/')">/</button>
+        <button class="btn-clear" onclick="clearAll()">AC</button>
+
+        <!-- Fila 6: números 4 5 6 * -->
+        <button class="btn-num" onclick="appendToExpr('4')">4</button>
+        <button class="btn-num" onclick="appendToExpr('5')">5</button>
+        <button class="btn-num" onclick="appendToExpr('6')">6</button>
+        <button class="btn-op"  onclick="appendToExpr('*')">×</button>
+        <button class="btn-sci" onclick="toggleSign()">+/-</button>
+
+        <!-- Fila 7: números 1 2 3 - -->
+        <button class="btn-num" onclick="appendToExpr('1')">1</button>
+        <button class="btn-num" onclick="appendToExpr('2')">2</button>
+        <button class="btn-num" onclick="appendToExpr('3')">3</button>
+        <button class="btn-op"  onclick="appendToExpr('-')">−</button>
+        <button class="btn-sci" onclick="appendToExpr('Math.PI/180*')">deg</button>
+
+        <!-- Fila 8: 0 . = + -->
+        <button class="btn-num span2" onclick="appendToExpr('0')">0</button>
+        <button class="btn-num" onclick="appendToExpr('.')">.</button>
+        <button class="btn-op"  onclick="appendToExpr('+')">+</button>
+        <button class="btn-equal" onclick="calculate()">=</button>
+
+    </div>
+
+    <hr>
+
+    <!-- ══════════════════════════════════
+         SECCIÓN 2 — Calculadora con selector
+    ══════════════════════════════════ -->
+    <p class="section-title">▸ Operación rápida con dos números</p>
+
+    <div class="inputs-row">
+        <input type="number" id="num1" placeholder="Número 1">
+        <input type="number" id="num2" placeholder="Número 2">
+    </div>
+
+    <div class="basic-op" style="margin-top:10px;">
+        <select id="operacion">
+            <option value="">-- Selecciona operación --</option>
+            <optgroup label="Básicas">
+                <option value="suma">➕ Suma</option>
+                <option value="resta">➖ Resta</option>
+                <option value="multi">✖️ Multiplicación</option>
+                <option value="div">➗ División</option>
+            </optgroup>
+            <optgroup label="Potencias y raíces">
+                <option value="pow">xʸ Potencia (a^b)</option>
+                <option value="sqrt">√ Raíz cuadrada (de a)</option>
+                <option value="cbrt">∛ Raíz cúbica (de a)</option>
+                <option value="rootn">ⁿ√ Raíz n-ésima (a^1/b)</option>
+            </optgroup>
+            <optgroup label="Logaritmos">
+                <option value="log10">log₁₀ (de a)</option>
+                <option value="log2">log₂ (de a)</option>
+                <option value="logn">logₙ Logaritmo base b de a</option>
+                <option value="ln">ln (de a)</option>
+            </optgroup>
+            <optgroup label="Trigonometría (grados)">
+                <option value="sin">sin (de a)</option>
+                <option value="cos">cos (de a)</option>
+                <option value="tan">tan (de a)</option>
+                <option value="asin">arcsin (de a)</option>
+                <option value="acos">arccos (de a)</option>
+                <option value="atan">arctan (de a)</option>
+            </optgroup>
+            <optgroup label="Otros">
+                <option value="mod">mod a % b</option>
+                <option value="abs">|a| Valor absoluto</option>
+                <option value="fact">a! Factorial</option>
+                <option value="gcd">MCD (a, b)</option>
+                <option value="lcm">MCM (a, b)</option>
+                <option value="perm">Permutaciones P(a,b)</option>
+                <option value="comb">Combinaciones C(a,b)</option>
+            </optgroup>
+        </select>
+    </div>
+
+    <input type="text" class="result-box" id="quickResult" placeholder="El resultado aparecerá aquí" readonly>
+    <div class="error-msg" id="errorMsg"></div>
+
+</div>
+
+<script>
+    /* ══════════════════════════════════════════════
+       CALCULADORA CIENTÍFICA (teclado de botones)
+    ══════════════════════════════════════════════ */
+    let expr = '';
+
+    function updateScreen() {
+        document.getElementById('expression').textContent = expr
+            .replace(/Math\.PI/g, 'π')
+            .replace(/Math\.E/g, 'e')
+            .replace(/Math\.PI\/180\*/g, '°')
+            .replace(/\*\*/g, '^');
+        document.getElementById('display').textContent = expr || '0';
+    }
+
+    function appendToExpr(val) {
+        expr += val;
+        updateScreen();
+    }
+
+    function clearAll() {
+        expr = '';
+        updateScreen();
+    }
+
+    function deleteLast() {
+        expr = expr.slice(0, -1);
+        updateScreen();
+    }
+
+    function toggleSign() {
+        if (expr === '' || expr === '0') return;
+        if (expr.startsWith('-')) {
+            expr = expr.slice(1);
+        } else {
+            expr = '-' + expr;
+        }
+        updateScreen();
+    }
+
+    function calcSci(fn) {
+        if (expr === '') return;
+        switch (fn) {
+            case 'sin':  expr = `Math.sin(${expr}*Math.PI/180)`; break;
+            case 'cos':  expr = `Math.cos(${expr}*Math.PI/180)`; break;
+            case 'tan':  expr = `Math.tan(${expr}*Math.PI/180)`; break;
+            case 'log':  expr = `Math.log10(${expr})`; break;
+            case 'ln':   expr = `Math.log(${expr})`; break;
+            case 'sqrt': expr = `Math.sqrt(${expr})`; break;
+            case 'cbrt': expr = `Math.cbrt(${expr})`; break;
+            case 'pow2': expr = `(${expr})**2`; break;
+            case 'pow3': expr = `(${expr})**3`; break;
+            case 'inv':  expr = `1/(${expr})`; break;
+            case 'exp':  expr = `Math.exp(${expr})`; break;
+            case 'abs':  expr = `Math.abs(${expr})`; break;
+            case 'fact': expr = `factorial(${expr})`; break;
+        }
+        updateScreen();
+    }
+
+    function factorial(n) {
+        n = Math.round(n);
+        if (n < 0) return NaN;
+        if (n === 0 || n === 1) return 1;
+        if (n > 170) return Infinity;
+        let result = 1;
+        for (let i = 2; i <= n; i++) result *= i;
+        return result;
+    }
+
+    function calculate() {
+        try {
+            // eslint-disable-next-line no-eval
+            let result = eval(expr.replace(/factorial/g, 'factorial'));
+            result = parseFloat(result.toFixed(10));
+            document.getElementById('display').textContent = result;
+            document.getElementById('expression').textContent =
+                expr.replace(/Math\.PI/g, 'π')
+                    .replace(/Math\.E/g, 'e')
+                    .replace(/\*\*/g, '^') + ' =';
+            expr = String(result);
+        } catch (e) {
+            document.getElementById('display').textContent = 'Error';
+            expr = '';
+        }
+    }
+
+    /* ══════════════════════════════════════════════
+       CALCULADORA RÁPIDA CON SELECTOR
+    ══════════════════════════════════════════════ */
+    function gcd(a, b) {
+        a = Math.abs(Math.round(a));
+        b = Math.abs(Math.round(b));
+        while (b) { [a, b] = [b, a % b]; }
+        return a;
+    }
+
+    function lcm(a, b) {
+        return Math.abs(a * b) / gcd(a, b);
+    }
+
+    function permutations(n, r) {
+        if (r > n) return 0;
+        let result = 1;
+        for (let i = n; i > n - r; i--) result *= i;
+        return result;
+    }
+
+    function combinations(n, r) {
+        if (r > n) return 0;
+        return permutations(n, r) / factorial(r);
+    }
+
+    function quickCalc() {
+        const a = parseFloat(document.getElementById('num1').value);
+        const b = parseFloat(document.getElementById('num2').value);
+        const op = document.getElementById('operacion').value;
+        const resultEl = document.getElementById('quickResult');
+        const errorEl  = document.getElementById('errorMsg');
+
+        resultEl.value = '';
+        errorEl.textContent = '';
+
+        if (!op) return;
+
+        const needsB = !['sqrt','cbrt','log10','log2','ln','abs','fact','sin','cos','tan','asin','acos','atan'].includes(op);
+
+        if (isNaN(a)) { errorEl.textContent = '⚠️ Ingresa el Número 1'; return; }
+        if (needsB && isNaN(b)) { errorEl.textContent = '⚠️ Ingresa el Número 2'; return; }
+
+        let result;
+        const toRad = deg => deg * Math.PI / 180;
+        const toDeg = rad => rad * 180 / Math.PI;
+
+        switch (op) {
+            case 'suma':  result = a + b; break;
+            case 'resta': result = a - b; break;
+            case 'multi': result = a * b; break;
+            case 'div':
+                if (b === 0) { errorEl.textContent = '⚠️ División por cero'; return; }
+                result = a / b; break;
+            case 'pow':   result = Math.pow(a, b); break;
+            case 'sqrt':  result = Math.sqrt(a); break;
+            case 'cbrt':  result = Math.cbrt(a); break;
+            case 'rootn':
+                if (b === 0) { errorEl.textContent = '⚠️ Índice de raíz no puede ser 0'; return; }
+                result = Math.pow(a, 1 / b); break;
+            case 'log10': result = Math.log10(a); break;
+            case 'log2':  result = Math.log2(a); break;
+            case 'logn':
+                if (b <= 0 || b === 1) { errorEl.textContent = '⚠️ Base inválida para logaritmo'; return; }
+                result = Math.log(a) / Math.log(b); break;
+            case 'ln':    result = Math.log(a); break;
+            case 'sin':   result = parseFloat(Math.sin(toRad(a)).toFixed(10)); break;
+            case 'cos':   result = parseFloat(Math.cos(toRad(a)).toFixed(10)); break;
+            case 'tan':
+                if (a % 180 === 90) { errorEl.textContent = '⚠️ Tangente indefinida'; return; }
+                result = parseFloat(Math.tan(toRad(a)).toFixed(10)); break;
+            case 'asin':  result = toDeg(Math.asin(a)); break;
+            case 'acos':  result = toDeg(Math.acos(a)); break;
+            case 'atan':  result = toDeg(Math.atan(a)); break;
+            case 'mod':   result = a % b; break;
+            case 'abs':   result = Math.abs(a); break;
+            case 'fact':
+                if (a < 0 || !Number.isInteger(a)) { errorEl.textContent = '⚠️ Solo enteros no negativos'; return; }
+                result = factorial(a); break;
+            case 'gcd':   result = gcd(a, b); break;
+            case 'lcm':   result = lcm(a, b); break;
+            case 'perm':  result = permutations(Math.round(a), Math.round(b)); break;
+            case 'comb':  result = combinations(Math.round(a), Math.round(b)); break;
+        }
+
+        if (result === undefined || isNaN(result)) { errorEl.textContent = '⚠️ Resultado indefinido'; return; }
+        resultEl.value = parseFloat(result.toFixed(10));
+    }
+
+    document.getElementById('num1').addEventListener('input', quickCalc);
+    document.getElementById('num2').addEventListener('input', quickCalc);
+    document.getElementById('operacion').addEventListener('change', quickCalc);
+</script>
+
+</body>
+</html>
